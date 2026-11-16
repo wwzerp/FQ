@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rendimento, máquinas térmicas e sustentabilidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#2b1a63;--ink:#fff8e7;--mute:#c9bdf0;--hot:#ff6b4a;--ice:#3df2d0;--sun:#ffd23f;--line:#5a47a8;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:400 1rem/1.5 "Fredoka",system-ui,sans-serif;position:relative}
+body::before{content:"";position:fixed;inset:-10%;background:radial-gradient(55% 65% at 0% 50%,rgba(255,107,74,.38),transparent 70%),radial-gradient(55% 65% at 100% 50%,rgba(61,242,208,.28),transparent 70%);pointer-events:none;animation:glow 7s ease-in-out infinite alternate}
+@keyframes glow{to{transform:scale(1.12) rotate(4deg)}}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+#panel{position:absolute;left:clamp(20px,5vw,80px);top:50%;transform:translateY(-50%);width:min(500px,calc(100% - 40px));z-index:2}
+#panel[data-pos=r]{left:auto;right:clamp(46px,6vw,90px)}
+#in{transition:opacity .3s,translate .45s cubic-bezier(.34,1.56,.64,1)}
+#in.out{opacity:0;translate:0 14px}
+h1{font:400 clamp(2rem,4.4vw,3.8rem)/1.08 "Bagel Fat One","Fredoka",system-ui,sans-serif;margin:0 0 .6rem;text-shadow:3px 3px 0 rgba(0,0,0,.25)}
+.w{display:inline-block;animation:wp .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes wp{from{opacity:0;transform:translateY(.7em) rotate(var(--r)) scale(.5)}}
+#lead{font-size:1.15rem;color:var(--mute);margin:0 0 1rem;animation:pop .6s .35s both}
+#tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
+#tags span{background:rgba(255,210,63,.16);border-radius:99px;padding:.15rem .8rem;font-size:.9rem;color:var(--sun)}
+#btns{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+button{font:600 .95rem "Fredoka",system-ui,sans-serif;color:var(--ink);background:rgba(255,255,255,.08);border:2.5px solid var(--ice);border-radius:18px;padding:.5rem 1.1rem;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.3);transition:transform .25s cubic-bezier(.34,1.56,.64,1),background .2s,border-color .2s,color .2s}
+button:hover{transform:translateY(-3px) rotate(-1.5deg);border-color:var(--sun)}
+button[aria-pressed=true]{background:var(--sun);border-color:var(--sun);color:#2b1a63;transform:scale(1.06)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
+#info{background:rgba(255,255,255,.1);border-radius:20px;padding:.8rem 1.1rem;font-size:1.08rem;min-height:3.2em;animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+#info:empty{display:none}
+@keyframes pop{from{opacity:0;scale:.9;translate:0 10px}}
+#sl{margin:0 0 1rem}
+#sl label{display:block;font-weight:600;margin-bottom:.3rem}
+#sl input{width:100%;accent-color:var(--sun)}
+#leg{font-size:.85rem;color:var(--mute);margin-top:.8rem}
+.o{color:var(--hot)}.c{color:var(--ice)}.d{color:#8f7fd0}.s{color:var(--sun)}
+#src{font-size:.85rem;color:var(--mute);margin-top:.4rem}
+#src a{color:var(--sun)}
+#nav{position:fixed;right:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:3}
+#nav button{width:14px;height:14px;padding:0;border-radius:50%;border:2.5px solid var(--mute);box-shadow:none}
+#nav button[aria-current=true]{background:var(--sun);border-color:var(--sun);transform:scale(1.4)}
+#bar{position:fixed;left:clamp(20px,5vw,80px);right:50px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:center;color:var(--mute);font-size:.85rem;z-index:3}
+#bar div{display:flex;gap:.5rem}
+#bar button{padding:.3rem .8rem;font-size:.85rem}
+@media (max-width:859px){#panel,#panel[data-pos]{left:clamp(20px,5vw,80px);right:auto;top:auto;bottom:62px;transform:none;max-height:58dvh;overflow:auto}h1{font-size:1.9rem}#lead{font-size:1rem;margin-bottom:.7rem}#hint{display:none}}
+@media (prefers-reduced-motion:reduce){#in,#info,.w,#lead,body::before{transition:none;animation:none}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-hidden="true"></canvas>
+<main id="panel" data-pos="l"><div id="in">
+  <h1 id="h"></h1><p id="lead"></p><div id="tags"></div>
+  <div id="sl" hidden><label id="slo" for="rg"></label><input id="rg" type="range"></div>
+  <div id="btns" role="group" aria-label="Escolhe um tópico"></div>
+  <div id="info" aria-live="polite"></div>
+  <div id="leg"></div><div id="src"></div>
+</div></main>
+<nav id="nav" aria-label="Ecrãs"></nav>
+<div id="bar"><span id="hint">Roda o rato, desliza ou usa as setas</span><div><button id="pv">Anterior</button><button id="nx">Seguinte</button></div></div>
+<script>
+const $=id=>document.getElementById(id);
+const COL={hot:[255,107,74],ice:[61,242,208],cream:[255,210,63],dim:[143,127,208]};
+const RP="https://www.repsol.pt/particulares/assessoramento/veiculo-a-gasoleo-ou-a-gasolina-qual-consome-mais/";
+const SC=[
+{lay:"hero",pos:"l",h:"Quanto da energia do combustível vira trabalho útil?",p:"Quase nunca é tudo. Descobre porquê.",tags:["Física e Química","Termodinâmica","Tema 6"],btns:[{b:"Começar",go:1}],src:"Rendimento, máquinas térmicas e sustentabilidade"},
+{lay:"mach",eng:1,pos:"r",h:"O que é uma máquina térmica?",p:"Pega em calor e transforma-o em movimento.",tags:["fonte quente","fonte fria","ciclo"],src:"Onde pesquisar: manual, vídeos de museus técnicos",btns:[
+{b:"🚂 Máquina a vapor",sh:"🚂",t:"A caldeira aquece a água. O vapor empurra o êmbolo e faz trabalho. Arrefece, volta a água e o ciclo recomeça."},
+{b:"🚗 Motor de combustão",sh:"🚗",t:"O combustível queima no cilindro, os gases expandem e empurram o pistão. O resto sai pelo escape e pelo radiador."},
+{b:"🔁 Ideia-chave",t:"Calor da fonte quente → trabalho útil + calor para a fonte fria. Sem diferença de temperatura, não há máquina."}]},
+{lay:"grid",pos:"l",leg:"<b class=o>●</b> energia útil &nbsp; <b class=d>●</b> calor perdido",h:"Rendimento: quanto sobra?",p:"η = energia útil ÷ energia fornecida",tags:["rendimento","energia útil"],src:"Onde pesquisar: fichas técnicas, etiquetas energéticas. Valores aproximados: usa os da tua ficha técnica!",
+slider:{min:1,max:100,v:25,f:v=>v,o:v=>"Energia útil: "+v+" J em cada 100 J → η = "+v+"%"},btns:[
+{b:"η A fórmula",sh:"η=Eú/Ef",t:"Eú é a energia útil e Ef a energia fornecida. A divisão dá a fração que não se perdeu."},
+{b:"🚗 Motor a gasolina",eta:25,t:"De cada 100 J de gasolina, só cerca de 25 J movem o carro. O resto aquece o ar."},
+{b:"🕯️ Lâmpada incandescente",eta:5,t:"Só uns 5% viram luz. Quase tudo é calor, por isso queima os dedos."},
+{b:"💡 Lâmpada LED",eta:30,t:"Muito mais luz com a mesma eletricidade. A mesma lei, mas melhor aproveitada."}]},
+{lay:"grid",pos:"r",leg:"<b class=o>●</b> trabalho possível &nbsp; <b class=d>●</b> calor rejeitado",h:"Porque nunca chega a 100%?",p:"A Segunda Lei da Termodinâmica não deixa.",tags:["Segunda Lei","calor rejeitado"],src:"Onde pesquisar: artigos de divulgação científica. Mexe no slider para ver o limite!",
+slider:{min:400,max:1500,v:800,f:v=>100*(1-300/v),o:v=>"Fonte quente a "+v+" K → η máx = 1 − 300÷"+v+" = "+Math.round(100*(1-300/v))+"%"},btns:[
+{b:"🔥 Calor rejeitado",sh:"Qq=W+Qf",t:"Qq é o calor da fonte quente, W o trabalho útil e Qf o calor rejeitado para a fonte fria. O Qf nunca é zero."},
+{b:"🚫 Segunda Lei",sh:"η<100%",c:"hot",t:"O calor vai sozinho do quente para o frio, nunca ao contrário. Converter tudo em trabalho é impossível."},
+{b:"🧮 Limite de Carnot",sh:"1−Tf/Tq",c:"ice",t:"η máx = 1 − Tf ÷ Tq, em kelvin. Só dava 100% com a fonte fria a 0 K, e isso ninguém atinge."}]},
+{lay:"duo",pos:"l",h:"Caso real: gasóleo ou gasolina?",p:"Dois carros equivalentes. Quem gasta menos?",tags:["caso real","Repsol"],src:"Fonte: <a href=\""+RP+"\" target=\"_blank\" rel=\"noopener\">Repsol, “Veículo a gasóleo ou a gasolina: qual consome mais?”</a> (20 abr 2026). Preços DGEG de 7 abr 2026.",btns:[
+{b:"⛽ 7 l contra 5 l",a:70,b2:50,t:"Em 100 km, o carro a gasolina gasta 7 l e o a gasóleo 5 l (exemplo da Repsol).",leg:"<b class=o>●</b> gasolina &nbsp; <b class=s>●</b> gasóleo &nbsp; 1 ponto = 0,1 l"},
+{b:"⚡ Porquê?",sh:"113%",t:"O gasóleo tem cerca de 113% da energia da gasolina por volume e o motor costuma ter mais rendimento. Mais η = menos litros."},
+{b:"💶 A conta do mês",sh:"−28,89€",c:"ice",t:"1000 km por mês: gasóleo 50 l × 2,141 € = 107,05 €. Gasolina 70 l × 1,942 € = 135,94 €. Sobram 28,89 € ao gasóleo."},
+{b:"⚖️ Mas atenção",sh:"⚖️",t:"O preço por litro, os impostos e o tipo de uso mudam a conta. Gasolina: cidade e trajetos curtos. Gasóleo: muita estrada."}]},
+{lay:"grid",pos:"r",h:"Como subir o rendimento?",p:"Perder menos calor ou reaproveitar o que sobra.",tags:["eficiência energética"],src:"Onde pesquisar: notícias, relatórios da DGEG e da ADENE",btns:[
+{b:"🏠 Isolamento",sh:"🏠",t:"Menos calor foge pelas paredes, logo gastas menos energia para o mesmo conforto."},
+{b:"♻️ Recuperação de calor",sh:"♻️",t:"O calor do escape ou da chaminé aquece outra coisa, em vez de ir para o ar."},
+{b:"🔋 Motores híbridos",sh:"🔋",t:"O motor elétrico recupera energia nas travagens e o de combustão trabalha onde é mais eficiente."},
+{b:"♨️ Bombas de calor",sh:"♨️",t:"Não criam calor, movem-no. Por cada 1 kWh elétrico entregam cerca de 3 kWh de calor."},
+{b:"💡 LED",sh:"💡",t:"A mesma luz com uma fração da energia."}]},
+{lay:"ring",pos:"l",h:"O custo de desperdiçar",p:"Cada joule perdido veio de algo que foi queimado.",tags:["CO₂","pegada energética"],src:"Onde pesquisar: relatórios de instituições, notícias",btns:[
+{b:"☁️ Emissões de CO₂",sh:"CO₂",c:"hot",t:"Queimar combustíveis liberta CO₂. Mais desperdício = mais combustível = mais CO₂."},
+{b:"🌍 Aquecimento global",sh:"🌍",t:"O CO₂ extra reforça o efeito de estufa e o planeta aquece."},
+{b:"🖥️ Centros de dados",sh:"🖥️",t:"Servidores usam muita eletricidade e quase tudo vira calor. Ainda gastam mais a arrefecer. Isto é connosco, TI."},
+{b:"👣 Pegada energética",sh:"👣",t:"A soma da energia que gastas, direta e indiretamente."}]},
+{lay:"ring",pos:"r",h:"O que podemos mudar?",p:"Sozinhos ajudamos. Juntos mudamos as regras.",tags:["consumo responsável","cidadania"],src:"Onde pesquisar: entrevista, inquérito curto na escola",btns:[
+{b:"🏡 Em casa",sh:"🏡",t:"Lâmpadas LED, nada em standby, eletrodomésticos com boa etiqueta energética."},
+{b:"🏫 Na escola",sh:"🏫",t:"Computadores em suspensão, luzes apagadas nas salas vazias, janelas fechadas com o aquecimento ligado."},
+{b:"💻 Empresa e TI",sh:"💻",t:"Servidores virtualizados, equipamento eficiente, desligar o que ninguém usa."},
+{b:"🤝 Coletivo",sh:"🤝",t:"Leis, etiquetas energéticas e incentivos tornam a escolha eficiente a mais fácil."}]},
+{lay:"split",pos:"l",leg:"<b class=o>●</b> a favor &nbsp; <b class=c>●</b> contra",k:0,h:"Debate: o rendimento chega?",p:"“A solução do problema energético está apenas no aumento do rendimento das máquinas.”",tags:["rigor","fontes","argumentação"],src:"Compara pelo menos 3 fontes diferentes e diz se concordam.",btns:[
+{b:"👍 A favor",k:0,t:"Mais rendimento = menos combustível para o mesmo trabalho. LED, bombas de calor e híbridos já provam."},
+{b:"👎 Contra",k:1,t:"A Segunda Lei impõe um teto. E o efeito rebote: máquinas eficientes levam-nos a usar mais. Também é preciso consumir menos."},
+{b:"📣 Proposta para a escola",sh:"📣",t:"Poster ou campanha: 3 gestos fáceis e uma meta que se consiga medir. Depois do debate, todos do mesmo lado."}]}
+];
+let cur=-1,ST={},lock=0,UPD=()=>{};
+const cv=$("cv"),cx=cv.getContext("2d");let W,H,DPR;
+const N=320,D=[];
+const rnd=i=>{const x=Math.sin(i*12.9898)*43758.5453;return x-Math.floor(x)};
+for(let i=0;i<N;i++)D.push({x:0,y:0,al:0,r:0,c:[...COL.cream]});
+function size(){DPR=devicePixelRatio||1;W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener("resize",size);size();
+const SHC={};
+function shape(t){if(SHC[t])return SHC[t];
+ const c=document.createElement("canvas"),s=c.getContext("2d",{willReadFrequently:true});c.width=480;c.height=240;
+ const emo=/\p{Extended_Pictographic}/u.test(t);s.textAlign="center";s.textBaseline="middle";s.fillStyle="#fff";
+ if(emo){s.font="190px sans-serif"}else{s.font="700 140px 'Bagel Fat One','Fredoka',sans-serif";const w=s.measureText(t).width;s.font="700 "+Math.min(150,140*430/w)+"px 'Bagel Fat One','Fredoka',sans-serif"}
+ s.fillText(t,240,emo?128:122);
+ const d=s.getImageData(0,0,480,240).data,p=[];
+ for(let y=0;y<240;y+=5)for(let x=0;x<480;x+=5){const k=(y*480+x)*4;if(d[k+3]>140)p.push([(x-240)/480,(y-120)/480,emo?[d[k],d[k+1],d[k+2]]:null])}
+ return SHC[t]=p}
+function rect(){const s=SC[Math.max(cur,0)];
+ if(s.lay==="hero")return{x:W/2,y:H/2,u:Math.min(W,H),a:W/Math.min(W,H),b:H/Math.min(W,H)};
+ if(W>=860)return{x:s.pos==="r"?W*.27:W*.72,y:H*.5,u:Math.min(W*.44,H*.85),a:1,b:1};
+ return{x:W/2,y:H*.22,u:Math.min(W*.85,H*.36),a:1,b:1}}
+const spi=(j,k)=>{const a=j*2.4,r=k*Math.sqrt(j);return[Math.cos(a)*r,Math.sin(a)*r]};
+function target(s,i,t,R){const e=Math.round(ST.eta),HID=[0,0,COL.cream,0];
+ if(ST.sh){const p=shape(ST.sh),n=p.length,q=n>=N?p[Math.floor(i*n/N)]:p[i];if(!q)return HID;
+  return[q[0]+Math.sin(t*.004+i)*.004,q[1]+Math.cos(t*.0035+i*1.7)*.004,q[2]||COL[ST.sc]]}
+ if(s.lay==="hero"){const rx=rnd(i),ry=rnd(i+300);return[(rx-.5)*R.a+Math.sin(t*.0006+i)*.03,(ry-.5)*R.b+Math.cos(t*.0005+i*2)*.03,rx+.15*(ry-.5)<.5?COL.hot:COL.ice]}
+ if(s.lay==="duo"){const l=i<ST.a,rt=!l&&i<ST.a+ST.b;if(!l&&!rt)return HID;
+  const[x,y]=spi(l?i:i-ST.a,.021);return[(l?-.25:.25)+x,y,l?COL.hot:COL.cream]}
+ if(i>=100)return HID;
+ if(s.lay==="mach"){const w=Math.sin(t*.003+i)*.01;
+  if(i<45){const[x,y]=spi(i,.04+0);return[-.38+x+w,.02+y,COL.hot]}
+  if(i<65){const j=i-45,up=(Math.sin(t*.002+j)+1)*.015;return[(j%5-2)*.05,-.42+Math.floor(j/5)*.05-up,COL.cream]}
+  const[x,y]=spi(i-65,.04);return[.38+x+w,.02+y,COL.ice]}
+ if(s.lay==="grid"){const c=i%10,r=Math.floor(i/10),u=i<e;
+  return[(c-4.5)*.09+(u?0:.14+Math.sin(t*.003+i)*.012),(r-4.5)*.09+(u?0:Math.cos(t*.002+i)*.01),u?COL.hot:COL.dim]}
+ if(s.lay==="ring"){const a=i/100*6.283+t*.0002,r=.36+Math.sin(t*.002+i)*.012;return[Math.cos(a)*r,Math.sin(a)*r,i<ST.k?COL.hot:COL.ice]}
+ const nl=ST.k===0?70:30,left=i<nl,[x,y]=spi(left?i:i-nl,.04);
+ return[(left?-.24:.24)+x,y,left?COL.hot:COL.ice]}
+function frame(t){cx.clearRect(0,0,W,H);if(cur>=0){const s=SC[cur],R=rect();
+ const rs=ST.sh?ST.rs:s.lay==="hero"?.01:s.lay==="duo"?.012:.014,r=Math.max(2.5,Math.min(7,R.u*rs));
+ D.forEach((d,i)=>{const T=target(s,i,t,R),al=T.length>3?T[3]:1;
+  d.x+=(R.x+T[0]*R.u-d.x)*.08;d.y+=(R.y+T[1]*R.u-d.y)*.08;d.al+=(al-d.al)*.1;d.r+=(1-d.r)*.04;
+  for(let k=0;k<3;k++)d.c[k]+=(T[2][k]-d.c[k])*.1;
+  if(d.al<.03)return;cx.globalAlpha=d.al;cx.fillStyle=`rgb(${d.c.map(Math.round)})`;
+  cx.beginPath();cx.arc(d.x,d.y,r*d.r*(1+.15*Math.sin(t*.006+i)),0,6.283);cx.fill()});
+ cx.globalAlpha=1;cx.fillStyle="rgba(255,248,231,.8)";cx.font="600 15px 'Fredoka',sans-serif";cx.textAlign="center";
+ if(s.lay==="mach"&&!ST.sh){cx.strokeStyle="rgba(255,248,231,.35)";cx.lineWidth=1.5;cx.beginPath();cx.arc(R.x,R.y+R.u*.02,R.u*.12,0,6.283);cx.stroke();
+  cx.fillText("máquina",R.x,R.y+R.u*.02+4);cx.fillText("fonte quente",R.x-R.u*.38,R.y+R.u*.24);cx.fillText("fonte fria",R.x+R.u*.38,R.y+R.u*.24);cx.fillText("trabalho útil",R.x,R.y-R.u*.2)}
+ if(s.lay==="duo"&&!ST.sh){cx.fillText("gasolina · 7 l",R.x-R.u*.25,R.y+R.u*.3);cx.fillText("gasóleo · 5 l",R.x+R.u*.25,R.y+R.u*.3)}}
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+function go(n){if(n<0||n>=SC.length||n===cur)return;
+ const first=cur<0;
+ if(first){D.forEach(d=>{d.x=W/2;d.y=H/2;d.r=0})}
+ else D.forEach(d=>{d.x+=(Math.random()-.5)*160;d.y+=(Math.random()-.5)*160;d.r=.3});
+ cur=n;const el=$("in");el.classList.add("out");
+ setTimeout(()=>{$("panel").dataset.pos=SC[cur].pos;render();el.classList.remove("out")},first?0:280);
+ document.querySelectorAll("#nav button").forEach((b,i)=>b.setAttribute("aria-current",i===n))}
+function render(){const s=SC[cur];
+ $("h").innerHTML=s.h.split(" ").map((w,i)=>`<span class="w" style="animation-delay:${i*70}ms;--r:${(i%2?1:-1)*(3+i%4)}deg">${w}</span>`).join(" ");
+ $("lead").textContent=s.p;
+ $("tags").innerHTML=(s.tags||[]).map(t=>"<span>"+t+"</span>").join("");
+ $("src").innerHTML=s.src||"";
+ ST={eta:25,k:50,sh:null,sc:"cream",a:70,b:50,rs:.011};
+ const sl=$("sl"),rg=$("rg");sl.hidden=!s.slider;UPD=()=>{};
+ if(s.slider){const q=s.slider;rg.min=q.min;rg.max=q.max;rg.value=q.v;
+  UPD=()=>{ST.eta=q.f(+rg.value);$("slo").textContent=q.o(+rg.value)};
+  rg.oninput=()=>{ST.sh=null;$("leg").innerHTML=s.leg||"";UPD()};UPD()}
+ const b=$("btns");b.innerHTML="";
+ s.btns.forEach((x,i)=>{const e=document.createElement("button");e.textContent=x.b;e.setAttribute("aria-pressed","false");e.onclick=()=>pick(i);b.append(e)});
+ if(!s.btns[0].go)pick(0);else{$("info").textContent="";$("leg").innerHTML=""}}
+function pick(i){const s=SC[cur],x=s.btns[i];if(x.go){go(x.go);return}
+ document.querySelectorAll("#btns button").forEach((e,j)=>e.setAttribute("aria-pressed",j===i));
+ const inf=$("info");inf.style.animation="none";inf.offsetWidth;inf.style.animation="";inf.style.rotate=(Math.random()*2.4-1.2)+"deg";inf.textContent=x.t;
+ ST.sh=x.sh||null;ST.sc=x.c||"cream";if(ST.sh)ST.rs=shape(ST.sh).length>=N?.011:.0075;
+ if(x.eta!=null){ST.eta=x.eta;if(s.slider){$("rg").value=x.eta;UPD()}}
+ if(x.k!=null)ST.k=x.k;if(x.a!=null){ST.a=x.a;ST.b=x.b2}
+ $("leg").innerHTML=x.leg??(ST.sh?"":s.leg||"")}
+const nav=$("nav");SC.forEach((s,i)=>{const b=document.createElement("button");b.setAttribute("aria-label","Ir para: "+s.h);b.onclick=()=>go(i);nav.append(b)});
+const step=d=>{if(performance.now()<lock)return;lock=performance.now()+800;go(cur+d)};
+addEventListener("wheel",e=>{if(Math.abs(e.deltaY)>8)step(e.deltaY>0?1:-1)},{passive:true});
+addEventListener("keydown",e=>{const inp=e.target.tagName==="INPUT";
+ if(e.key==="ArrowDown"||e.key==="PageDown"||(e.key==="ArrowRight"&&!inp))step(1);
+ if(e.key==="ArrowUp"||e.key==="PageUp"||(e.key==="ArrowLeft"&&!inp))step(-1)});
+let ty=0;addEventListener("touchstart",e=>ty=e.touches[0].clientY,{passive:true});
+addEventListener("touchend",e=>{const d=ty-e.changedTouches[0].clientY;if(Math.abs(d)>60)step(d>0?1:-1)},{passive:true});
+$("nx").onclick=()=>step(1);$("pv").onclick=()=>step(-1);
+document.fonts.ready.then(()=>go(0));
+</script>
+</body>
+</html>
